@@ -39,6 +39,7 @@ class CategoryScreen extends ConsumerWidget {
                     confirmDismiss: (direction) async {
                       if (direction == DismissDirection.startToEnd) {
                         // Swipe Right → Edit
+
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
@@ -75,12 +76,7 @@ class CategoryScreen extends ConsumerWidget {
                         leading: CircleAvatar(
                           radius: 24,
                           backgroundColor: category.isIncome ? Colors.green[400] : Colors.red[400],
-                          child: category.icon != null
-                              ? Icon(category.icon, color: Colors.white, size: 24)
-                              : Text(
-                                  category.name[0].toUpperCase(),
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                ),
+                          child: Icon(category.icon, color: Colors.white, size: 24),
                         ),
                         title: Text(category.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                         subtitle: Text(

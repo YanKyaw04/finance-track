@@ -32,8 +32,15 @@ class IncomeExpenseRadial extends ConsumerWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          color: AppColors.cardLight.withOpacity(0.4),
-          border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+          color: AppColors.cardLight.withAlpha((0.4 * 255).toInt()), // replaced with withAlpha
+          border: Border.all(color: AppColors.primary.withAlpha((0.2 * 255).toInt())), // replaced with withAlpha
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha((0.05 * 255).toInt()), // subtle shadow
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -47,7 +54,7 @@ class IncomeExpenseRadial extends ConsumerWidget {
                   child: CircularProgressIndicator(
                     value: percent,
                     strokeWidth: 12,
-                    backgroundColor: color.withOpacity(0.2),
+                    backgroundColor: color.withAlpha((0.2 * 255).toInt()), // replaced with withAlpha
                     valueColor: AlwaysStoppedAnimation(color),
                   ),
                 ),
@@ -55,7 +62,7 @@ class IncomeExpenseRadial extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Text(label, style: AppTextStyles.body),
+            Text(label, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
             Text("${amount.toStringAsFixed(0)} Ks", style: AppTextStyles.amount.copyWith(color: color)),
           ],

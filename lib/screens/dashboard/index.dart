@@ -1,6 +1,7 @@
 import 'package:fintrack/core/constants/color.dart';
 import 'package:fintrack/core/constants/text_style.dart';
 import 'package:fintrack/providers/common.dart';
+import 'package:fintrack/providers/report.dart';
 import 'package:fintrack/router.dart';
 import 'package:fintrack/screens/home/index.dart';
 import 'package:fintrack/screens/profile/index.dart';
@@ -31,7 +32,7 @@ class DashboardScreen extends ConsumerWidget {
           if (currentIndex == 2) ...[
             IconButton(
               icon: const Icon(Icons.refresh, color: Colors.white),
-              onPressed: () {},
+              onPressed: () => ref.read(reportProvider.notifier).refresh(),
             ),
             IconButton(
               icon: const Icon(Icons.download_outlined, color: Colors.white),
@@ -91,7 +92,14 @@ class DashboardScreen extends ConsumerWidget {
             },
           ),
           ListTile(leading: const Icon(Icons.backup), title: const Text("Backup / Restore"), onTap: () => context.pop()),
-          ListTile(leading: const Icon(Icons.info), title: const Text("About"), onTap: () => context.pop()),
+          ListTile(
+            leading: const Icon(Icons.info),
+            title: const Text("About"),
+            onTap: () {
+              context.push(AppRoute.aboutUs.path);
+              context.pop();
+            },
+          ),
         ],
       ),
     );

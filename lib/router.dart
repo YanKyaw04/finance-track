@@ -1,15 +1,4 @@
-enum AppRoute {
-  splash,
-  login,
-  register,
-  home,
-  dashboard,
-  transactions,
-  budget,
-  settings,
-  reports,
-  category,
-}
+enum AppRoute { splash, login, register, home, dashboard, transactions, budget, settings, reports, category, aboutUs }
 
 extension AppRoutePath on AppRoute {
   String get path {
@@ -34,6 +23,8 @@ extension AppRoutePath on AppRoute {
         return '/settings';
       case AppRoute.category:
         return '/category';
+      case AppRoute.aboutUs:
+        return '/about-us';
     }
   }
 }

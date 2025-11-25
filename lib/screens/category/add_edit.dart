@@ -1,8 +1,10 @@
 import 'package:fintrack/core/icons/category_icon.dart';
 import 'package:fintrack/models/category.dart';
 import 'package:fintrack/providers/category.dart';
+import 'package:fintrack/providers/common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class AddEditCategoryModal extends ConsumerStatefulWidget {
   final CategoryModel? category;
@@ -14,21 +16,25 @@ class AddEditCategoryModal extends ConsumerStatefulWidget {
 }
 
 class _AddEditCategoryModalState extends ConsumerState<AddEditCategoryModal> {
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  bool _isIncome = true;
-  IconData? selectedIcon;
+  final formKey = GlobalKey<FormState>();
+  late TextEditingController nameController;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.category?.name ?? '');
-    _isIncome = widget.category?.isIncome ?? true;
-    selectedIcon = widget.category?.icon ?? Icons.category;
+    nameController = TextEditingController(text: widget.category?.name ?? '');
+    // Initialize providers once
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(isIncomeProvider.notifier).state = widget.category?.isIncome ?? true;
+      ref.read(selectedIconKeyProvider.notifier).state = widget.category?.iconKey ?? CategoryIcons.all.keys.first;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final isIncome = ref.watch(isIncomeProvider);
+    final selectedIconKey = ref.watch(selectedIconKeyProvider);
+
     return Container(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       decoration: const BoxDecoration(
@@ -39,7 +45,7 @@ class _AddEditCategoryModalState extends ConsumerState<AddEditCategoryModal> {
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         child: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -58,7 +64,7 @@ class _AddEditCategoryModalState extends ConsumerState<AddEditCategoryModal> {
 
               // Name Input
               TextFormField(
-                controller: _nameController,
+                controller: nameController,
                 decoration: InputDecoration(
                   labelText: 'Category Name',
                   labelStyle: const TextStyle(fontWeight: FontWeight.w500),
@@ -70,6 +76,7 @@ class _AddEditCategoryModalState extends ConsumerState<AddEditCategoryModal> {
                 validator: (v) => v == null || v.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 24),
+
               // Icon Picker Title
               Align(
                 alignment: Alignment.centerLeft,
@@ -87,11 +94,13 @@ class _AddEditCategoryModalState extends ConsumerState<AddEditCategoryModal> {
                   itemCount: CategoryIcons.all.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 12),
                   itemBuilder: (_, index) {
-                    final icon = CategoryIcons.all[index];
-                    final isSelected = selectedIcon == icon;
+                    final key = CategoryIcons.all.keys.elementAt(index);
+                    final icon = CategoryIcons.all[key];
+
+                    final isSelected = key == selectedIconKey;
 
                     return GestureDetector(
-                      onTap: () => setState(() => selectedIcon = icon),
+                      onTap: () => ref.read(selectedIconKeyProvider.notifier).state = key,
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         width: 60,
@@ -115,22 +124,22 @@ class _AddEditCategoryModalState extends ConsumerState<AddEditCategoryModal> {
                 children: [
                   ChoiceChip(
                     label: const Text('Income', style: TextStyle(fontWeight: FontWeight.bold)),
-                    selected: _isIncome,
+                    selected: isIncome,
                     selectedColor: Colors.green[400],
                     backgroundColor: Colors.grey[200],
-                    labelStyle: TextStyle(color: _isIncome ? Colors.white : Colors.black87),
+                    labelStyle: TextStyle(color: isIncome ? Colors.white : Colors.black87),
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    onSelected: (v) => setState(() => _isIncome = true),
+                    onSelected: (_) => ref.read(isIncomeProvider.notifier).state = true,
                   ),
                   const SizedBox(width: 16),
                   ChoiceChip(
                     label: const Text('Expense', style: TextStyle(fontWeight: FontWeight.bold)),
-                    selected: !_isIncome,
+                    selected: !isIncome,
                     selectedColor: Colors.red[400],
                     backgroundColor: Colors.grey[200],
-                    labelStyle: TextStyle(color: !_isIncome ? Colors.white : Colors.black87),
+                    labelStyle: TextStyle(color: !isIncome ? Colors.white : Colors.black87),
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    onSelected: (v) => setState(() => _isIncome = false),
+                    onSelected: (_) => ref.read(isIncomeProvider.notifier).state = false,
                   ),
                 ],
               ),
@@ -142,12 +151,12 @@ class _AddEditCategoryModalState extends ConsumerState<AddEditCategoryModal> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
+                    if (formKey.currentState!.validate()) {
                       final model = CategoryModel(
                         id: widget.category?.id,
-                        name: _nameController.text.trim(),
-                        isIncome: _isIncome,
-                        icon: selectedIcon,
+                        name: nameController.text.trim(),
+                        isIncome: ref.read(isIncomeProvider),
+                        iconKey: ref.read(selectedIconKeyProvider)!,
                       );
 
                       if (widget.category == null) {
@@ -156,13 +165,13 @@ class _AddEditCategoryModalState extends ConsumerState<AddEditCategoryModal> {
                         await ref.read(categoryProvider.notifier).updateCategory(model);
                       }
 
-                      if (context.mounted) Navigator.pop(context);
+                      if (context.mounted) context.pop();
                     }
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    backgroundColor: _isIncome ? Colors.green[700] : Colors.red[700],
+                    backgroundColor: ref.read(isIncomeProvider) ? Colors.green[700] : Colors.red[700],
                     foregroundColor: Colors.white,
                     elevation: 5,
                   ),

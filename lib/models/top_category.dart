@@ -1,11 +1,13 @@
+import 'package:fintrack/core/icons/category_icon.dart';
 import 'package:flutter/material.dart';
 
 class CategoryStat {
   final int id;
   final String name;
-  IconData? icon;
+  String iconKey;
   final double total;
   final double percent;
 
-  CategoryStat({required this.id, required this.name, this.icon, required this.total, required this.percent});
+  CategoryStat({required this.id, required this.name, required this.iconKey, required this.total, required this.percent});
+  IconData get icon => CategoryIcons.all[iconKey]!;
 }

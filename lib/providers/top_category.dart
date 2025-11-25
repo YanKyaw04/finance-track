@@ -1,6 +1,5 @@
 import 'package:fintrack/database/index.dart';
 import 'package:fintrack/models/top_category.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final topCategoriesProvider = FutureProvider.autoDispose.family<List<CategoryStat>, ({DateTime from, DateTime to, bool isIncome})>((ref, args) async {
@@ -25,7 +24,7 @@ final topCategoriesProvider = FutureProvider.autoDispose.family<List<CategorySta
   // Fetch category-wise breakdown
   final rows = await db.rawQuery(
     '''
-    SELECT c.id, c.name, c.icon,
+    SELECT c.id, c.name, c.iconKey,
       SUM(t.amount) AS total
     FROM transactions t
     JOIN categories c ON c.id = t.categoryId
@@ -40,13 +39,6 @@ final topCategoriesProvider = FutureProvider.autoDispose.family<List<CategorySta
   return rows.map((r) {
     final amount = (r['total'] as num).toDouble();
     final percent = (amount / totalAmount) * 100;
-
-    return CategoryStat(
-      id: r['id'] as int,
-      name: r['name'] as String,
-      icon: r['icon'] != null ? IconData(r['icon'] as int, fontFamily: 'MaterialIcons') : null,
-      total: amount,
-      percent: percent,
-    );
+    return CategoryStat(id: r['id'] as int, name: r['name'] as String, iconKey: r['iconKey'] as String, total: amount, percent: percent);
   }).toList();
 });

@@ -35,7 +35,7 @@ class ReportHelper {
 
     final rows = await db.rawQuery(
       '''
-      SELECT t.*, c.name as categoryName, c.icon as categoryIcon, c.isIncome as categoryIsIncome
+      SELECT t.*, c.name as categoryName, c.iconKey as categoryIcon, c.isIncome as categoryIsIncome
       FROM transactions t
       LEFT JOIN categories c ON t.categoryId = c.id
       WHERE t.date BETWEEN ? AND ?
@@ -78,7 +78,7 @@ class ReportHelper {
 
     final rows = await db.rawQuery(
       '''
-      SELECT c.id as categoryId, c.name as categoryName, c.icon as categoryIcon, 
+      SELECT c.id as categoryId, c.name as categoryName, c.iconKey as categoryIcon, 
              SUM(t.amount) as total
       FROM transactions t
       JOIN categories c ON t.categoryId = c.id

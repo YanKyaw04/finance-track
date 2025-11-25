@@ -17,11 +17,29 @@ class CategoryHelper {
 
   Future<int> updateCategory(CategoryModel category) async {
     final db = await DBHelper().database;
-    return await db.update('categories', category.toMap(), where: "id = ?", whereArgs: [category.id]);
+    return await db.update(table, category.toMap(), where: "id = ?", whereArgs: [category.id]);
   }
 
   Future<int> deleteCategory(int id) async {
     final db = await DBHelper().database;
-    return await db.delete('categories', where: "id = ?", whereArgs: [id]);
+    return await db.delete(table, where: "id = ?", whereArgs: [id]);
+  }
+
+  /// Fetch only Income Categories
+  Future<List<CategoryModel>> getIncomeCategories() async {
+    final db = await DBHelper().database;
+
+    final result = await db.query(table, where: 'isIncome = 1');
+
+    return result.map((map) => CategoryModel.fromMap(map)).toList();
+  }
+
+  /// Fetch only Expense Categories
+  Future<List<CategoryModel>> getExpenseCategories() async {
+    final db = await DBHelper().database;
+
+    final result = await db.query(table, where: 'isIncome = 0');
+
+    return result.map((map) => CategoryModel.fromMap(map)).toList();
   }
 }

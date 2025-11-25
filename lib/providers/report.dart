@@ -19,7 +19,6 @@ class ReportNotifier extends Notifier<ReportState> {
     final from = state.from;
     final to = state.to;
     final ie = await reportRepo.fetchIncomeExpense(from, to);
-    final recent = await reportRepo.fetchRecentTransactions(from: from, to: to, limit: 8);
     final topExpenses = await reportRepo.fetchTopCategories(from: from, to: to, type: 'expense', limit: 5);
     final topIncomes = await reportRepo.fetchTopCategories(from: from, to: to, type: 'income', limit: 5);
     final monthlyNet = await reportRepo.fetchMonthlyNet(DateTime.now().year);
@@ -28,7 +27,6 @@ class ReportNotifier extends Notifier<ReportState> {
       isLoading: false,
       income: ie['income'] ?? 0,
       expense: ie['expense'] ?? 0,
-      recent: recent,
       topExpenses: topExpenses,
       topIncomes: topIncomes,
       monthlyNet: monthlyNet,

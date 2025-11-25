@@ -1,4 +1,5 @@
 import 'package:fintrack/models/top_category.dart';
+import 'package:fintrack/providers/common.dart';
 import 'package:fintrack/providers/top_category.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -6,29 +7,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fintrack/core/constants/color.dart';
 import 'package:fintrack/core/constants/text_style.dart';
 
-class TopCategoriesSection extends ConsumerStatefulWidget {
+class TopCategoriesSection extends ConsumerWidget {
   final DateTime from;
   final DateTime to;
 
   const TopCategoriesSection({super.key, required this.from, required this.to});
 
   @override
-  ConsumerState<TopCategoriesSection> createState() => _TopCategoriesSectionState();
-}
-
-class _TopCategoriesSectionState extends ConsumerState<TopCategoriesSection> {
-  bool isIncome = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final dataAsync = ref.watch(topCategoriesProvider((from: widget.from, to: widget.to, isIncome: isIncome)));
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isIncome = ref.watch(isIncomeProvider);
+    final dataAsync = ref.watch(topCategoriesProvider((from: from, to: to, isIncome: isIncome)));
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withAlpha((0.05 * 255).toInt()), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,20 +32,11 @@ class _TopCategoriesSectionState extends ConsumerState<TopCategoriesSection> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Top Categories", style: AppTextStyles.title),
+              Text("Top Categories", style: AppTextStyles.title.copyWith(color: AppColors.textSecondary, fontSize: 18)),
               Container(
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(30), color: AppColors.primary.withOpacity(0.08)),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(30), color: AppColors.primary.withAlpha((0.08 * 255).toInt())),
                 padding: const EdgeInsets.all(4),
-                child: Row(
-                  children: [
-                    _toggleButton("Expense", !isIncome, () {
-                      setState(() => isIncome = false);
-                    }),
-                    _toggleButton("Income", isIncome, () {
-                      setState(() => isIncome = true);
-                    }),
-                  ],
-                ),
+                child: Row(children: [_toggleButton(ref, "Expense", !isIncome, false), _toggleButton(ref, "Income", isIncome, true)]),
               ),
             ],
           ),
@@ -81,9 +67,9 @@ class _TopCategoriesSectionState extends ConsumerState<TopCategoriesSection> {
     );
   }
 
-  Widget _toggleButton(String label, bool active, VoidCallback onTap) {
+  Widget _toggleButton(WidgetRef ref, String label, bool active, bool value) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => ref.read(isIncomeProvider.notifier).state = value,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -117,7 +103,6 @@ class _TopCategoriesSectionState extends ConsumerState<TopCategoriesSection> {
       child: Row(
         children: [
           Icon(item.icon, color: AppColors.primary, size: 24),
-
           const SizedBox(width: 12),
           Expanded(
             child: Column(

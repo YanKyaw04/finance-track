@@ -1,25 +1,24 @@
+import 'package:fintrack/core/icons/category_icon.dart';
 import 'package:flutter/material.dart';
 
 class CategoryModel {
   final int? id;
   final String name;
-  final IconData? icon;
+  final String iconKey;
   final bool isIncome;
 
-  CategoryModel({this.id, required this.name, this.icon, required this.isIncome});
+  CategoryModel({this.id, required this.name, required this.iconKey, required this.isIncome});
 
   Map<String, dynamic> toMap() {
-    return {'id': id, 'name': name, 'isIncome': isIncome ? 1 : 0, 'icon': icon?.codePoint};
+    return {'id': id, 'name': name, 'iconKey': iconKey, 'isIncome': isIncome ? 1 : 0};
   }
 
+  /// ---- LOAD FROM DATABASE ----
   static CategoryModel fromMap(Map<String, dynamic> map) {
-    return CategoryModel(
-      id: map['id'],
-      name: map['name'],
-      isIncome: map['isIncome'] == 1,
-      icon: map['icon'] != null ? IconData(map['icon'], fontFamily: 'MaterialIcons') : null,
-    );
+    return CategoryModel(id: map['id'] as int?, name: map['name'] ?? '', iconKey: map['iconKey'] ?? 'category', isIncome: map['isIncome'] == 1);
   }
+
+  IconData get icon => CategoryIcons.all[iconKey]!;
 }
 
 class CategoryState {
