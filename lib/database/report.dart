@@ -1,4 +1,5 @@
 import 'package:fintrack/database/index.dart';
+import 'package:fintrack/models/top_category.dart';
 
 class ReportHelper {
   /// Returns total income and total expense for date range [from]..[to]
@@ -29,66 +30,67 @@ class ReportHelper {
     return {'income': income.toDouble(), 'expense': expense.toDouble()};
   }
 
-  /// Returns latest N transactions in the date range (ordered desc)
-  Future<List<Map<String, dynamic>>> getRecentTransactions({required DateTime from, required DateTime to, int limit = 10}) async {
+  // Future<List<Map<String, dynamic>>> getTopCategories({required DateTime from, required DateTime to, required bool isIncome, int limit = 5}) async {
+  //   final db = await DBHelper().database;
+
+  //   final rows = await db.rawQuery(
+  //     '''
+  //     SELECT c.id as categoryId, c.name as categoryName, c.iconKey as categoryIcon,
+  //            SUM(t.amount) as total
+  //     FROM transactions t
+  //     JOIN categories c ON t.categoryId = c.id
+  //     WHERE t.isIncome = ? AND t.date BETWEEN ? AND ?
+  //     GROUP BY t.categoryId
+  //     ORDER BY total DESC
+  //     LIMIT ?
+  //     ''',
+  //     [isIncome, from.toIso8601String(), to.toIso8601String(), limit],
+  //   );
+  //   return rows;
+  // }
+
+  //final topCategoriesProvider = FutureProvider.autoDispose.family<List<CategoryStat>, ({DateTime from, DateTime to, bool isIncome})>((ref, args) async {
+  Future<List<CategoryStat>> getTopCategories({required DateTime from, required DateTime to, required bool isIncome, int limit = 5}) async {
     final db = await DBHelper().database;
 
+    final f = from.toIso8601String();
+    final t = to.toIso8601String();
+
+    // First: total of all categories (for percentage)
+    final totalRow = await db.rawQuery(
+      '''
+    SELECT SUM(amount) AS total
+    FROM transactions
+    WHERE isIncome = ?
+    AND date BETWEEN ? AND ?
+   
+  ''',
+      [isIncome ? 1 : 0, f, t],
+    );
+
+    final totalAmount = (totalRow.first['total'] as num?)?.toDouble() ?? 0;
+
+    if (totalAmount == 0) return [];
+
+    // Fetch category-wise breakdown
     final rows = await db.rawQuery(
       '''
-      SELECT t.*, c.name as categoryName, c.iconKey as categoryIcon, c.isIncome as categoryIsIncome
-      FROM transactions t
-      LEFT JOIN categories c ON t.categoryId = c.id
-      WHERE t.date BETWEEN ? AND ?
-      ORDER BY t.date DESC
-      LIMIT ?
-      ''',
-      [from.toIso8601String(), to.toIso8601String(), limit],
+    SELECT c.id, c.name, c.iconKey,
+      SUM(t.amount) AS total
+    FROM transactions t
+    JOIN categories c ON c.id = t.categoryId
+    WHERE t.isIncome = ?
+    AND t.date BETWEEN ? AND ?
+    GROUP BY c.id
+    ORDER BY total DESC
+  ''',
+      [isIncome ? 1 : 0, f, t],
     );
-    return rows;
-  }
 
-  /// Returns monthly net totals for the given year (map month -> net amount)
-  Future<List<Map<String, dynamic>>> getMonthlyNetForYear(int year) async {
-    // Group by month
-    final db = await DBHelper().database;
-
-    final from = DateTime(year, 1, 1).toIso8601String();
-    final to = DateTime(year, 12, 31, 23, 59, 59).toIso8601String();
-
-    final rows = await db.rawQuery(
-      '''
-      SELECT CAST(strftime('%m', date) AS INTEGER) as month,
-             SUM(CASE WHEN isIncome = 1 THEN amount ELSE -amount END) as net
-      FROM transactions
-      WHERE date BETWEEN ? AND ?
-      GROUP BY month
-      ORDER BY month
-      ''',
-      [from, to],
-    );
-    // rows: [{month: 1, net: 123.4}, ...]
-    return rows;
-  }
-
-  /// Returns top categories by expense or income in the range
-  /// type: 'income' or 'expense'
-  Future<List<Map<String, dynamic>>> getTopCategories({required DateTime from, required DateTime to, required String type, int limit = 5}) async {
-    final isIncomeFlag = (type == 'income') ? 1 : 0;
-    final db = await DBHelper().database;
-
-    final rows = await db.rawQuery(
-      '''
-      SELECT c.id as categoryId, c.name as categoryName, c.iconKey as categoryIcon, 
-             SUM(t.amount) as total
-      FROM transactions t
-      JOIN categories c ON t.categoryId = c.id
-      WHERE t.isIncome = ? AND t.date BETWEEN ? AND ?
-      GROUP BY t.categoryId
-      ORDER BY total DESC
-      LIMIT ?
-      ''',
-      [isIncomeFlag, from.toIso8601String(), to.toIso8601String(), limit],
-    );
-    return rows;
+    return rows.map((r) {
+      final amount = (r['total'] as num).toDouble();
+      final percent = (amount / totalAmount) * 100;
+      return CategoryStat(id: r['id'] as int, name: r['name'] as String, iconKey: r['iconKey'] as String, total: amount, percent: percent);
+    }).toList();
   }
 }

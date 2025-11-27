@@ -153,7 +153,7 @@ class SummaryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: (MediaQuery.of(context).size.width - 64) / 3,
-      height: (MediaQuery.of(context).size.height - 30) / 12,
+      height: (MediaQuery.of(context).size.height - 30) / 10,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),

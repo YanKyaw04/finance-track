@@ -28,7 +28,7 @@ class ReportScreen extends ConsumerWidget {
                   IncomeExpenseRadial(income: state.income, expense: state.expense),
 
                   const SizedBox(height: 16),
-                  TopCategoriesSection(from: state.from, to: state.to),
+                  TopCategoriesSection(isIncome: state.isIncome, data: state.topCategories),
                 ],
               ),
       ),

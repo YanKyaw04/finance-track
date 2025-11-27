@@ -4,6 +4,7 @@ import 'package:fintrack/models/category.dart';
 import 'package:fintrack/models/transaction.dart';
 import 'package:fintrack/providers/category.dart';
 import 'package:fintrack/providers/dashboard.dart';
+import 'package:fintrack/providers/report.dart';
 import 'package:fintrack/providers/transactions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -129,12 +130,7 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
                                 radius: 14,
 
                                 backgroundColor: c.isIncome ? Colors.green : Colors.red,
-                                child: c.icon != null
-                                    ? Icon(c.icon, color: Colors.white, size: 18)
-                                    : Text(
-                                        c.name[0].toUpperCase(),
-                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                      ),
+                                child: Icon(c.icon, color: Colors.white, size: 18),
                               ),
                               const SizedBox(width: 12),
                               Text(c.name, style: AppTextStyles.body),
@@ -253,6 +249,8 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
       await ref.read(transactionProvider.notifier).addTransaction(newTxn);
     }
     ref.invalidate(dashboardProvider);
+    ref.invalidate(reportProvider);
+
     if (mounted) Navigator.pop(context);
   }
 }

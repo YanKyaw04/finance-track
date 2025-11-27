@@ -15,8 +15,6 @@ class DashboardNotifier extends Notifier<DashboardState> {
   Future<void> loadDashboard() async {
     state = state.copyWith(isLoading: true);
     final txns = await transactionRepo.getRecent();
-    // final income = txns.where((t) => t.isIncome).fold(0.0, (sum, t) => sum + t.amount);
-    // final expense = txns.where((t) => !t.isIncome).fold(0.0, (sum, t) => sum + t.amount);
     final income = await transactionRepo.getIncome();
     final expense = await transactionRepo.getExpense();
     final balance = income - expense;

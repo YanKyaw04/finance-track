@@ -1,6 +1,5 @@
 import 'package:fintrack/models/top_category.dart';
-import 'package:fintrack/providers/common.dart';
-import 'package:fintrack/providers/top_category.dart';
+import 'package:fintrack/providers/report.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,16 +7,13 @@ import 'package:fintrack/core/constants/color.dart';
 import 'package:fintrack/core/constants/text_style.dart';
 
 class TopCategoriesSection extends ConsumerWidget {
-  final DateTime from;
-  final DateTime to;
+  final List<CategoryStat> data;
+  final bool isIncome;
 
-  const TopCategoriesSection({super.key, required this.from, required this.to});
+  const TopCategoriesSection({super.key, required this.data, required this.isIncome});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isIncome = ref.watch(isIncomeProvider);
-    final dataAsync = ref.watch(topCategoriesProvider((from: from, to: to, isIncome: isIncome)));
-
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -36,47 +32,46 @@ class TopCategoriesSection extends ConsumerWidget {
               Container(
                 decoration: BoxDecoration(borderRadius: BorderRadius.circular(30), color: AppColors.primary.withAlpha((0.08 * 255).toInt())),
                 padding: const EdgeInsets.all(4),
-                child: Row(children: [_toggleButton(ref, "Expense", !isIncome, false), _toggleButton(ref, "Income", isIncome, true)]),
+                child: Row(children: [_toggleButton(ref, "Expense", false, isIncome), _toggleButton(ref, "Income", true, isIncome)]),
               ),
             ],
           ),
           const SizedBox(height: 16),
 
-          // Data
-          dataAsync.when(
-            loading: () => const Center(
-              child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()),
-            ),
-            error: (e, s) => Text("Error: $e"),
-            data: (list) {
-              if (list.isEmpty) {
-                return const Padding(padding: EdgeInsets.all(16), child: Text("No category data in this range"));
-              }
-
-              return Column(
-                children: [
-                  SizedBox(height: 180, child: PieChart(PieChartData(sectionsSpace: 3, centerSpaceRadius: 40, sections: _buildChartSections(list)))),
-                  const SizedBox(height: 20),
-                  ...list.map(_buildCategoryRow),
-                ],
-              );
-            },
-          ),
+          data.isEmpty
+              ? const Padding(padding: EdgeInsets.all(16), child: Text("No category data in this range"))
+              : Column(
+                  children: [
+                    SizedBox(
+                      height: 180,
+                      child: PieChart(PieChartData(sectionsSpace: 3, centerSpaceRadius: 40, sections: _buildChartSections(data))),
+                    ),
+                    const SizedBox(height: 20),
+                    ...data.map(_buildCategoryRow),
+                  ],
+                ),
         ],
       ),
     );
   }
 
-  Widget _toggleButton(WidgetRef ref, String label, bool active, bool value) {
+  Widget _toggleButton(
+    WidgetRef ref,
+    String label,
+    bool sectionType, // true = income, false = expense
+    bool currentIsIncome,
+  ) {
+    final isSelected = (sectionType == currentIsIncome);
+
     return GestureDetector(
-      onTap: () => ref.read(isIncomeProvider.notifier).state = value,
+      onTap: () => ref.read(reportProvider.notifier).incomeToggle(sectionType),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(color: active ? AppColors.primary : Colors.transparent, borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(color: isSelected ? AppColors.primary : Colors.transparent, borderRadius: BorderRadius.circular(20)),
         child: Text(
           label,
-          style: TextStyle(fontWeight: FontWeight.bold, color: active ? Colors.white : AppColors.primary),
+          style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : AppColors.primary),
         ),
       ),
     );

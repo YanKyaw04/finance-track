@@ -19,22 +19,18 @@ class ReportNotifier extends Notifier<ReportState> {
     final from = state.from;
     final to = state.to;
     final ie = await reportRepo.fetchIncomeExpense(from, to);
-    final topExpenses = await reportRepo.fetchTopCategories(from: from, to: to, type: 'expense', limit: 5);
-    final topIncomes = await reportRepo.fetchTopCategories(from: from, to: to, type: 'income', limit: 5);
-    final monthlyNet = await reportRepo.fetchMonthlyNet(DateTime.now().year);
+    final topCategories = await reportRepo.fetchTopCategories(from: from, to: to, isIncome: state.isIncome, limit: 5);
 
-    state = state.copyWith(
-      isLoading: false,
-      income: ie['income'] ?? 0,
-      expense: ie['expense'] ?? 0,
-      topExpenses: topExpenses,
-      topIncomes: topIncomes,
-      monthlyNet: monthlyNet,
-    );
+    state = state.copyWith(isLoading: false, income: ie['income'] ?? 0, expense: ie['expense'] ?? 0, topCategories: topCategories);
   }
 
   Future<void> setRange(DateTime from, DateTime to) async {
     state = state.copyWith(from: from, to: to);
+    await load();
+  }
+
+  Future<void> incomeToggle(bool isIncome) async {
+    state = state.copyWith(isIncome: isIncome);
     await load();
   }
 

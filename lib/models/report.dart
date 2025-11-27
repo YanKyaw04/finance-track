@@ -1,41 +1,39 @@
+import 'package:fintrack/models/top_category.dart';
+
 class ReportState {
   final bool isLoading;
+  final bool isIncome;
   final double income;
   final double expense;
-  final List<Map<String, dynamic>> monthlyNet; // list of {month, net}
-  final List<Map<String, dynamic>> topExpenses;
-  final List<Map<String, dynamic>> topIncomes;
+  final List<CategoryStat> topCategories;
   final DateTime from;
   final DateTime to;
 
   ReportState({
     required this.isLoading,
     required this.income,
+    required this.isIncome,
     required this.expense,
-    required this.monthlyNet,
-    required this.topExpenses,
-    required this.topIncomes,
+    required this.topCategories,
     required this.from,
     required this.to,
   });
 
   ReportState copyWith({
     bool? isLoading,
+    bool? isIncome,
     double? income,
     double? expense,
-    List<Map<String, dynamic>>? monthlyNet,
-    List<Map<String, dynamic>>? topExpenses,
-    List<Map<String, dynamic>>? topIncomes,
+    List<CategoryStat>? topCategories,
     DateTime? from,
     DateTime? to,
   }) {
     return ReportState(
       isLoading: isLoading ?? this.isLoading,
+      isIncome: isIncome ?? this.isIncome,
       income: income ?? this.income,
       expense: expense ?? this.expense,
-      monthlyNet: monthlyNet ?? this.monthlyNet,
-      topExpenses: topExpenses ?? this.topExpenses,
-      topIncomes: topIncomes ?? this.topIncomes,
+      topCategories: topCategories ?? this.topCategories,
       from: from ?? this.from,
       to: to ?? this.to,
     );
@@ -45,6 +43,6 @@ class ReportState {
     final now = DateTime.now();
     final start = from ?? DateTime(now.year, now.month, 1);
     final end = to ?? DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-    return ReportState(isLoading: false, income: 0, expense: 0, monthlyNet: [], topExpenses: [], topIncomes: [], from: start, to: end);
+    return ReportState(isLoading: false, isIncome: false, income: 0, expense: 0, topCategories: [], from: start, to: end);
   }
 }
